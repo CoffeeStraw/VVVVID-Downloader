@@ -8,6 +8,7 @@ import os
 import re
 import requests
 import youtube_dl
+import copy
 
 import colorama
 from colorama import Fore, Back, Style
@@ -42,17 +43,40 @@ def get_data(URL):
 	pattern = "#!show/([0-9]+)/"
 	show_id = re.findall(pattern, URL)[0]
 
-	pattern = show_id + "/(.+)/?"
+	pattern = show_id + "/(.+?)/"
 	name = re.findall(pattern, URL)[0]
 
 	# Downloading Episodes informations
 	json_url = "https://www.vvvvid.it/vvvvid/ondemand/" + show_id + "/seasons/"
 	json_file = current_session.get(json_url, headers=headers, params=payload).json()
-	
-	episodes = json_file['data'][0]['episodes']
-	data = {'show_id': show_id, 'season_id': json_file['data'][0]['season_id'], 'name': name}
 
-	return data, episodes
+	seasons = []
+	for i, season in enumerate(json_file['data']):
+		seasons.append({'name': json_file['data'][i]['name'], 'season_id': json_file['data'][i]['season_id'], 'episodes': json_file['data'][i]['episodes']})
+
+	data = {'show_id': show_id, 'name': name}
+
+	# Checking if the link is a link to the episodes. If that is true, we modify seasons list
+	pattern = name + "(.+)$"
+	additional_infos = re.findall(pattern, URL)[0]
+
+	if additional_infos != "/":
+		stop = False
+		additional_infos = re.findall("/(.+)/(.+)/(.+)/", additional_infos)[0]
+
+		seasons_c = copy.deepcopy(seasons)
+		for i, season in enumerate(seasons_c):
+			if not stop and str(season['season_id']) == str(additional_infos[0]):
+				for j, episode in enumerate(season['episodes']):
+					if str(episode['video_id']) == str(additional_infos[1]):
+						stop = True
+						break
+					else:
+						del seasons[0]['episodes'][0]
+			else:
+				del seasons[0]
+
+	return data, seasons
 
 def get_infos(conn_id, show_id):
 	'''
@@ -74,66 +98,75 @@ def convert_title(text):
 	'''
 	Format a title correctly for the url
 	'''
-	text = re.sub(r'[^a-zA-Z\s\-\']', '', text)
+	text = re.sub(r'[^a-zA-Zàèéìòù\s\-\']', '', text)
+
+	text = text.replace("à","a")
+	text = re.sub("è|é", "e", text)
+	text = text.replace("ì","i")
+	text = text.replace("ò","o")
+	text = text.replace("ù","u")
+
 	text = re.sub(r'[\s\']+', '-', text)
 	return text.lower()
 
 # Reading animelist file to get all the links
 with open("animelist.txt", 'r') as file:
 	for URL in [line for line in file if not line.strip().startswith('#')]:
-		anime_data, episodes = get_data(URL.strip())
+		anime_data, seasons = get_data(URL.strip() + "/")
 		anime_info = get_infos(conn_id, anime_data['show_id'])
-		anime_dir = dl_dir + win_correct_name(anime_info['data']['title'])
 
 		print(Style.BRIGHT + "In preparazione: %s\n%sDescrizione: %s" % (
 			Back.BLACK + Fore.WHITE + anime_info['data']['title'],
 			Style.RESET_ALL + Style.BRIGHT,
 			anime_info['data']['description']))
 
-		# Preventing Directory not found error
-		if not os.path.exists(anime_dir):
-			os.makedirs(anime_dir)
+		for season in seasons:
+			anime_dir = dl_dir + win_correct_name(anime_info['data']['title']) + " - " + season['name']
 
-		# Checking episodes downloaded to accelerate a little bit youtube-dl checks
-		episode_downloaded = []
-		for episode in os.listdir(anime_dir):
-			if ".part" not in episode:
-				episode_downloaded.append(os.path.splitext(episode)[0])
+			# Preventing Directory not found error
+			if not os.path.exists(anime_dir):
+				os.makedirs(anime_dir)
 
-		for episode in episodes:
-			print()
-			if not episode['playable']:
-				print("L'episodio %s non è stato ancora reso disponibile.%s Lo sarà il: %s" % (
-					episode['number'],
-					Style.BRIGHT,
-					episode['availability_date']))
-				break
+			# Checking episodes downloaded to accelerate a little bit youtube-dl checks
+			episode_downloaded = []
+			for episode in os.listdir(anime_dir):
+				if ".part" not in episode:
+					episode_downloaded.append(os.path.splitext(episode)[0])
 
-			ep_name = "%s - %s" % (episode['number'], episode['title'])
+			for episode in season['episodes']:
+				print()
+				if not episode['playable']:
+					print("L'episodio %s non è stato ancora reso disponibile.%s Lo sarà il: %s" % (
+						episode['number'],
+						Style.BRIGHT,
+						episode['availability_date']))
+					break
 
-			if ep_name not in episode_downloaded:
-				# Constructing url
-				ep_url = "https://www.vvvvid.it/#!show/%s/%s/%s/%s/%s" % (
-						anime_data['show_id'],
-						anime_data['name'],
-						anime_data['season_id'],
-						episode['video_id'],
-						convert_title(episode['title']))
+				ep_name = "%s - %s" % (episode['number'], episode['title'])
 
-				ydl_opts = {
-					'format': "best",
-					'outtmpl': "%s/%s.%%(ext)s" % (anime_dir, ep_name),
-					'continuedl': True,
-				}
-				
-				print(Style.BRIGHT + "Episodio %s: %s - %sscaricando\n" % (
-					episode['number'],
-					episode['title'],
-					Fore.GREEN))
+				if ep_name not in episode_downloaded:
+					# Constructing url
+					ep_url = "https://www.vvvvid.it/#!show/%s/%s/%s/%s/%s" % (
+							anime_data['show_id'],
+							anime_data['name'],
+							season['season_id'],
+							episode['video_id'],
+							convert_title(episode['title']))
 
-				with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-				    ydl.download([ep_url])
-			else:
-				print("Episodio %s: %s già scaricato" % (
-					episode['number'],
-					episode['title'] + Fore.YELLOW))
+					ydl_opts = {
+						'format': "best",
+						'outtmpl': "%s/%s.%%(ext)s" % (anime_dir, ep_name),
+						'continuedl': True,
+					}
+
+					print(Style.BRIGHT + "Episodio %s: %s - %sscaricando\n" % (
+						episode['number'],
+						episode['title'],
+						Fore.GREEN))
+
+					with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+					    ydl.download([ep_url])
+				else:
+					print("Episodio %s: %s già scaricato" % (
+						episode['number'],
+						episode['title'] + Fore.YELLOW))

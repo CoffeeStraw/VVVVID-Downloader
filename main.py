@@ -74,7 +74,7 @@ def get_data(URL):
 					else:
 						del seasons[0]['episodes'][0]
 			else:
-				del seasons[0]
+				del seasons[i]
 
 	return data, seasons
 

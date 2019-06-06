@@ -39,6 +39,9 @@ def get_data(URL):
 	Returns a dictionary containing the infos to
 	generate the url and a list of the episodes
 	'''
+	# fix the link
+	URL = URL.replace("/show/","/#!show/")
+	
 	# Getting info from given URL
 	pattern = "#!show/([0-9]+)/"
 	show_id = re.findall(pattern, URL)[0]

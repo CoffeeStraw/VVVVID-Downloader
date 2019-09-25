@@ -103,11 +103,11 @@ def convert_title(text):
 	'''
 	text = re.sub(r'[^a-zA-Zàèéìòù\s\-\']', '', text)
 
-	text = text.replace("à","a")
-	text = re.sub("è|é", "e", text)
-	text = text.replace("ì","i")
-	text = text.replace("ò","o")
-	text = text.replace("ù","u")
+	text = text.replace(u"à","a")
+	text = re.sub(u"è|é", "e", text)
+	text = text.replace(u"ì","i")
+	text = text.replace(u"ò","o")
+	text = text.replace(u"ù","u")
 
 	text = re.sub(r'[\s\']+', '-', text)
 	return text.lower()

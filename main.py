@@ -8,7 +8,7 @@ import os
 import re
 import requests
 import youtube_dl
-import copy
+from copy import deepcopy
 
 import colorama
 from colorama import Fore, Back, Style
@@ -53,9 +53,12 @@ def get_data(URL):
 	json_url = "https://www.vvvvid.it/vvvvid/ondemand/" + show_id + "/seasons/"
 	json_file = current_session.get(json_url, headers=headers, params=payload).json()
 
-	seasons = []
+	seasons = {}
 	for i, season in enumerate(json_file['data']):
-		seasons.append({'name': json_file['data'][i]['name'], 'season_id': json_file['data'][i]['season_id'], 'episodes': json_file['data'][i]['episodes']})
+		seasons[str(json_file['data'][i]['season_id'])] = {
+			'name': json_file['data'][i]['name'],
+			'episodes': json_file['data'][i]['episodes']
+		}
 
 	data = {'show_id': show_id, 'name': name}
 
@@ -67,17 +70,17 @@ def get_data(URL):
 		stop = False
 		additional_infos = re.findall("/(.+)/(.+)/(.+)/", additional_infos)[0]
 
-		seasons_c = copy.deepcopy(seasons)
-		for i, season in enumerate(seasons_c):
-			if not stop and str(season['season_id']) == str(additional_infos[0]):
+		seasons_c = deepcopy(seasons)
+		for season_id, season in seasons_c.items():
+			if not stop and season_id == additional_infos[0]:
 				for j, episode in enumerate(season['episodes']):
 					if str(episode['video_id']) == str(additional_infos[1]):
 						stop = True
 						break
 					else:
-						del seasons[0]['episodes'][0]
+						del seasons[season_id]['episodes'][0]
 			else:
-				del seasons[i]
+				del seasons[season_id]
 
 	return data, seasons
 
@@ -123,7 +126,7 @@ with open("animelist.txt", 'r') as file:
 			Style.RESET_ALL + Style.BRIGHT,
 			anime_info['data']['description']))
 
-		for season in seasons:
+		for season_id, season in seasons.items():
 			anime_dir = dl_dir + win_correct_name(anime_info['data']['title']) + " - " + season['name']
 
 			# Preventing Directory not found error
@@ -152,7 +155,7 @@ with open("animelist.txt", 'r') as file:
 					ep_url = "https://www.vvvvid.it/#!show/%s/%s/%s/%s/%s" % (
 							anime_data['show_id'],
 							anime_data['name'],
-							season['season_id'],
+							season_id,
 							episode['video_id'],
 							convert_title(episode['title']))
 

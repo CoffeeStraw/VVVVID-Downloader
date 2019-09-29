@@ -32,5 +32,5 @@ Per poter utilizzare lo script, tutto quello che dovrete fare è porre il link a
 - Se avete più link, vanno posizionati ognuno su una linea a parte.
 - Le linee che cominciano con **#** saranno ignorate, può tornare utile se volete ignorare temporaneamente qualcosa ad esempio.
 
-## License
+## Licenza
 Il presente software è distribuito sotto licenza MIT. Si legga il file `LICENSE` per ulteriori informazioni.

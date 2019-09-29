@@ -1,178 +1,173 @@
 '''
-VVVVID Downloader - VVVVID Scraper
-Author: CoffeeStraw (clarantonio98@gmail.com)
+VVVVID Downloader - Main
+Author: CoffeeStraw
+GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 '''
-
-from platform import system
 import os
-import re
-import requests
-import youtube_dl
-from copy import deepcopy
+from shutil import which
+from platform import system
 
-import colorama
+import requests
+from youtube_dl import YoutubeDL
+
+from colorama import init as colorama_init
 from colorama import Fore, Back, Style
 
-# Current Directory
-dl_dir = os.path.dirname(os.path.realpath(__file__)) + "/Downloads/"
+import vvvvid_scraper
+from text_utility import os_fix_filename
 
-# Getting Colorama utility ready to work
-colorama.init(autoreset=True)
+# Defining Download folder
+current_dir = os.path.dirname(os.path.realpath(__file__))
+dl_dir = os.path.join(current_dir, "Downloads")
 
-# Starting...
-if system() == 'Windows':
-	print(Style.BRIGHT + "Attenzione, siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni")
 
-print(Style.DIM + "Inizializzando VVVVID Downloader...\n")
-
-# Creating persistent session
-current_session = requests.Session()
-headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'}
-
-# Getting conn_id token from vvvvvvvvvvid and creating payload
-login_page = 'https://www.vvvvid.it/user/login'
-conn_id = current_session.get(login_page, headers=headers).json()['data']['conn_id']
-payload = {'conn_id': conn_id}
-
-def get_data(URL):
+def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 	'''
-	Returns a dictionary containing the infos to
-	generate the url and a list of the episodes
+	General function to process a given link from
+	vvvvid website and to start the download using youtube-dl
 	'''
-	# fix the link
-	URL = URL.replace("/show/","/#!show/")
-	
-	# Getting info from given URL
-	pattern = "#!show/([0-9]+)/"
-	show_id = re.findall(pattern, URL)[0]
+	# Retrieving datas about the given url
+	show_id, url_name            = vvvvid_scraper.parse_url(url)
+	seasons                      = vvvvid_scraper.get_seasons(requests_obj, url, show_id, url_name)
+	cont_title, cont_description = vvvvid_scraper.get_content_infos(requests_obj, show_id)
 
-	pattern = show_id + "/(.+?)/"
-	name = re.findall(pattern, URL)[0]
-
-	# Downloading Episodes informations
-	json_url = "https://www.vvvvid.it/vvvvid/ondemand/" + show_id + "/seasons/"
-	json_file = current_session.get(json_url, headers=headers, params=payload).json()
-
-	seasons = {}
-	for i, season in enumerate(json_file['data']):
-		seasons[str(json_file['data'][i]['season_id'])] = {
-			'name': json_file['data'][i]['name'],
-			'episodes': json_file['data'][i]['episodes']
-		}
-
-	data = {'show_id': show_id, 'name': name}
-
-	# Checking if the link is a link to the episodes. If that is true, we modify seasons list
-	pattern = name + "(.+)$"
-	additional_infos = re.findall(pattern, URL)[0]
-
-	if additional_infos != "/":
-		stop = False
-		additional_infos = re.findall("/(.+)/(.+)/(.+)/", additional_infos)[0]
-
-		seasons_c = deepcopy(seasons)
-		for season_id, season in seasons_c.items():
-			if not stop and season_id == additional_infos[0]:
-				for j, episode in enumerate(season['episodes']):
-					if str(episode['video_id']) == str(additional_infos[1]):
-						stop = True
-						break
-					else:
-						del seasons[season_id]['episodes'][0]
-			else:
-				del seasons[season_id]
-
-	return data, seasons
-
-def get_infos(conn_id, show_id):
-	'''
-	Returns the infos of the anime
-	'''
-	infos_url = 'https://www.vvvvid.it/vvvvid/ondemand/' + show_id + '/info/'
-	json_file = current_session.get(infos_url, headers=headers, params=payload).json()
-	return json_file
-
-def win_correct_name(text):
-	'''
-	Correct the title if the script is run from Microsoft OS
-	'''
-	if system() == 'Windows':
-		text = re.sub(r'[\\\/\:\*\?\"\<\>\|]+', '', text)
-	return text
-
-def convert_title(text):
-	'''
-	Format a title correctly for the url
-	'''
-	text = re.sub(r'[^a-zA-Zàèéìòù\s\-\']', '', text)
-
-	text = text.replace("à","a")
-	text = re.sub("è|é", "e", text)
-	text = text.replace("ì","i")
-	text = text.replace("ò","o")
-	text = text.replace("ù","u")
-
-	text = re.sub(r'[\s\']+', '-', text)
-	return text.lower()
-
-# Reading animelist file to get all the links
-with open("animelist.txt", 'r') as file:
-	for URL in [line for line in file if not line.strip().startswith('#')]:
-		anime_data, seasons = get_data(URL.strip() + "/")
-		anime_info = get_infos(conn_id, anime_data['show_id'])
-
-		print(Style.BRIGHT + "In preparazione: %s\n%sDescrizione: %s" % (
-			Back.BLACK + Fore.WHITE + anime_info['data']['title'],
+	# Printing content informations to the user
+	print("%sIn preparazione: %s\n%sDescrizione:     %s" % (
+			Style.BRIGHT,
+			Back.BLACK + Fore.WHITE + cont_title,
 			Style.RESET_ALL + Style.BRIGHT,
-			anime_info['data']['description']))
+			cont_description
+		)
+	)
 
-		for season_id, season in seasons.items():
-			anime_dir = dl_dir + win_correct_name(anime_info['data']['title']) + " - " + season['name']
+	# Iterate over the seasons obtained from the url in the txt
+	for season_id, season in seasons.items():
+		# Creating content directory if not existing
+		content_dir = os.path.join(dl_dir, os_fix_filename(cont_title + " - " + season['name']))
+		if not os.path.exists(content_dir):
+			os.makedirs(content_dir)
 
-			# Preventing Directory not found error
-			if not os.path.exists(anime_dir):
-				os.makedirs(anime_dir)
+		# Checking episodes downloaded to accelerate a little bit youtube-dl checks
+		episodes_downloaded = []
+		for episode in os.listdir(content_dir):
+			if ".part" not in episode:
+				episodes_downloaded.append(os.path.splitext(episode)[0])
 
-			# Checking episodes downloaded to accelerate a little bit youtube-dl checks
-			episode_downloaded = []
-			for episode in os.listdir(anime_dir):
-				if ".part" not in episode:
-					episode_downloaded.append(os.path.splitext(episode)[0])
-
-			for episode in season['episodes']:
-				print()
-				if not episode['playable']:
-					print("L'episodio %s non è stato ancora reso disponibile.%s Lo sarà il: %s" % (
+		# Iterate over the episodes in the season
+		for episode in season['episodes']:
+			# Check if episode is public released
+			if not episode['playable']:
+				print("\nL'episodio %s non è stato ancora reso disponibile.%s Lo sarà il: %s" % (
 						episode['number'],
 						Style.BRIGHT,
-						episode['availability_date']))
-					break
+						episode['availability_date']
+					)
+				)
+				break
 
-				ep_name = "%s - %s" % (episode['number'], episode['title'])
+			# Build episode name
+			ep_name = os_fix_filename("%s - %s" % (episode['number'], episode['title']))
 
-				if ep_name not in episode_downloaded:
-					# Constructing url
-					ep_url = "https://www.vvvvid.it/#!show/%s/%s/%s/%s/%s" % (
-							anime_data['show_id'],
-							anime_data['name'],
-							season_id,
-							episode['video_id'],
-							convert_title(episode['title']))
+			# If episode is already downloaded, skip it
+			if ep_name in episodes_downloaded:
+				print("\nEpisodio %s: %s già scaricato" % (
+					episode['number'],
+					episode['title'] + Fore.YELLOW
+					)
+				)
+				continue
 
-					ydl_opts = {
-						'format': "best",
-						'outtmpl': "%s/%s.%%(ext)s" % (anime_dir, ep_name),
-						'continuedl': True,
-					}
+			# Build url
+			ep_url = "https://www.vvvvid.it/show/%s/%s/%s/%s/%s" % (
+				show_id,
+				url_name,
+				season_id,
+				episode['video_id'],
+				vvvvid_scraper.convert_text_to_url_format(episode['title'])
+			)
 
-					print(Style.BRIGHT + "Episodio %s: %s - %sscaricando\n" % (
-						episode['number'],
-						episode['title'],
-						Fore.GREEN))
+			# Preparing options for youtube-dl
+			ydl_opts = {
+				'format':     'best',
+				'outtmpl':    '%s/%s.%%(ext)s' % (content_dir, ep_name),
+				'continuedl': True,
+			}
 
-					with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-					    ydl.download([ep_url])
-				else:
-					print("Episodio %s: %s già scaricato" % (
-						episode['number'],
-						episode['title'] + Fore.YELLOW))
+			# If the script is running either from Windows or Mac, get ffmpeg locally if not available
+			if ffmpeg_local:
+				ydl_opts['ffmpeg_location'] = ffmpeg_local
+
+			# Print information to the user: the episode is ready to be downloaded
+			print("\n%sEpisodio %s: %s%s - %sscaricando\n" % (
+					Style.BRIGHT,
+					episode['number'],
+					Style.RESET_ALL,
+					episode['title'],
+					Fore.GREEN
+				)
+			)
+
+			# Start to download the selected file
+			with YoutubeDL(ydl_opts) as ydl:
+			    ydl.download([ep_url])
+
+
+def main():
+	# Getting Colorama utility ready to work
+	colorama_init(autoreset=True)
+
+	# Printing warning if on Windows
+	if system() == 'Windows':
+		print(Style.BRIGHT + "Nota Bene: " + Style.RESET_ALL +
+			  "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni.\n"
+		)
+
+	# Creating persistent session
+	current_session = requests.Session()
+	headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'}
+
+	# Getting conn_id token from vvvvid and putting it into a payload
+	conn_id = {
+		'conn_id': current_session.get(
+				'https://www.vvvvid.it/user/login',
+				headers=headers
+			).json()['data']['conn_id']
+	}
+
+	# Creating requests object
+	requests_obj = {
+		'session': current_session,
+		'headers': headers,
+		'payload': conn_id
+	}
+
+	# Check if ffmpeg is available in PATH
+	ffmpeg_local = ''
+	if which('ffmpeg') is None:
+		# If the user is running the script from Windows or Mac, ffmpeg's build can be inside dependency folder
+		if system() in ['Windows', 'Darwin']:
+			ffmpeg_dir_files = os.listdir(os.path.join(current_dir, 'ffmpeg'))
+			ffmpeg_dir_files.remove('readme.md')
+			
+			# If the directory is ambiguous stop the script
+			if len(ffmpeg_dir_files) > 1:
+				print("La tua directory di ffmpeg contiene troppi file/cartelle. Assicurati che contenga solo il readme e la cartella con la build di ffmpeg.")
+				quit()
+			elif len(ffmpeg_dir_files) == 0:
+				print("Questo script ha una dipendenza da ffmpeg, che non risulta essere installato. Per maggiori informazioni, consulta il readme sulla pagina GitHub del progetto.")
+				quit()
+
+			ffmpeg_local = os.path.join(current_dir, 'ffmpeg', ffmpeg_dir_files[0], 'bin')
+		else:
+			print("Questo script ha una dipendenza da ffmpeg, che non risulta essere installato. Per maggiori informazioni, consulta il readme sulla pagina GitHub del progetto, nella sezione installazione per Ubuntu.")
+			quit()
+
+	# Get anime list from local file, ignoring lines commented
+	with open("downloads_list.txt", 'r') as f:
+		for line in f:
+			line = line.strip() + '/'
+			if not line.startswith('#'):
+				dl_from_vvvvid(line, requests_obj, ffmpeg_local)
+
+if __name__ == "__main__":
+	main()

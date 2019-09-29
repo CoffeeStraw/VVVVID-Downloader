@@ -1,3 +1,0 @@
-# Examples: lines starting with # will be ignored
-https://www.vvvvid.it/#!show/845/sword-art-online-alicization
-# https://www.vvvvid.it/#!show/786/steinsgate-0

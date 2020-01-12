@@ -85,7 +85,6 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 				episode['video_id'],
 				vvvvid_scraper.convert_text_to_url_format(episode['title'])
 			)
-			print(ep_url)
 
 			# Preparing options for youtube-dl
 			ydl_opts = {

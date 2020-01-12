@@ -43,7 +43,7 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 	# Iterate over the seasons obtained from the url in the txt
 	for season_id, season in seasons.items():
 		# Creating content directory if not existing
-		content_dir = os.path.join(dl_dir, os_fix_filename(cont_title + " - " + season['name']))
+		content_dir = os.path.join(dl_dir, os_fix_filename(cont_title + " - " + season['name'])).replace("%", "%%")
 		if not os.path.exists(content_dir):
 			os.makedirs(content_dir)
 
@@ -66,7 +66,7 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 				break
 
 			# Build episode name
-			ep_name = os_fix_filename("%s - %s" % (episode['number'], episode['title']))
+			ep_name = os_fix_filename("%s - %s" % (episode['number'], episode['title'])).replace("%", "%%")
 
 			# If episode is already downloaded, skip it
 			if ep_name in episodes_downloaded:
@@ -85,6 +85,7 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 				episode['video_id'],
 				vvvvid_scraper.convert_text_to_url_format(episode['title'])
 			)
+			print(ep_url)
 
 			# Preparing options for youtube-dl
 			ydl_opts = {

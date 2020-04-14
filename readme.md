@@ -16,15 +16,18 @@ Durante lo sviluppo si è scelto di adottare queste convenzioni poiché sono ris
 
 ## Installazione
 Ovviamente la prima cosa da fare è scaricare il progetto, usando `git clone` oppure scaricandone lo zip e poi estraendolo dove più vi è comodo. Dopodiché:
+
 1. Lo script richiede Python3, [scaricabile qui](https://www.python.org/downloads/). **Nota per gli utenti Windows**: è necessario che durante l'installazione sia aggiunto Python3 al PATH. Una possibile guida per l'installazione è consultabile [qui](https://realpython.com/installing-python/).
+
 2. Vanno installate le librerie esterne. Per farlo, recatevi nella cartella del progetto ed utilizzate pip (oppure pip3 nel caso non vada) per installarle: 
 ```sh
 pip install -r requirements.txt
 ```
 3. Il progetto ha un'ultima dipendenza: ffmpeg. VVVVID Downloader è strutturato in modo da poter risolvere localmente (o non) questa dipendenza per gli utenti Windows e Mac. Se non si è mai installato e volete evitare l'aggiunta al PATH (utile se non vi servirà in altre occasioni), allora procedete con i passaggi successivi.
-	4.  Selezionate la build che necessitate [dal sito ufficiale di ffmpeg](https://ffmpeg.zeranoe.com/builds/), si consiglia la stable con static linking.
-	5. Estraete la cartella all'interno dell'archivio.
-	6. Ponetela all'interno della cartella **ffmpeg** presente all'interno della cartella del progetto, è una cartella vuota contenente unicamente un file *readme*.
+
+4.  Selezionate la build che necessitate [dal sito ufficiale di ffmpeg](https://ffmpeg.zeranoe.com/builds/), si consiglia la stable con static linking.
+5. Estraete la cartella all'interno dell'archivio.
+6. Ponetela all'interno della cartella **ffmpeg** presente all'interno della cartella del progetto, è una cartella vuota contenente unicamente un file *readme*.
 
 ## Utilizzo
 Per poter utilizzare lo script, tutto quello che dovrete fare è porre il link a ciò che desiderate scaricare da VVVVID all'interno del file **downloads_list**, che contiene già degli esempi.

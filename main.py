@@ -162,12 +162,17 @@ def main():
 			print("Questo script ha una dipendenza da ffmpeg, che non risulta essere installato. Per maggiori informazioni, consulta il readme sulla pagina GitHub del progetto, nella sezione installazione per Ubuntu.")
 			quit()
 
-	# Get anime list from local file, ignoring lines commented
+	# Get anime list from local file, ignoring commented lines and empty lines
 	with open("downloads_list.txt", 'r') as f:
 		for line in f:
+			if line.strip() == "":
+				continue
+
 			line = line.strip() + '/'
 			if not line.startswith('#'):
 				dl_from_vvvvid(line, requests_obj, ffmpeg_local)
+
+
 
 if __name__ == "__main__":
 	main()

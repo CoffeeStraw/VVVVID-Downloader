@@ -2,3 +2,4 @@ __pycache__
 Downloads/
 ffmpeg/*
 !ffmpeg/readme.md
+.vs

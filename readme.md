@@ -30,7 +30,11 @@ pip install -r requirements.txt
 6. Ponetela all'interno della cartella **ffmpeg** presente all'interno della cartella del progetto, è una cartella vuota contenente unicamente un file *readme*.
 
 ## Utilizzo
-Per poter utilizzare lo script, tutto quello che dovrete fare è porre il link a ciò che desiderate scaricare da VVVVID all'interno del file **downloads_list**, che contiene già degli esempi.
+Per poter utilizzare lo script, tutto quello che dovrete fare è porre il link a ciò che desiderate scaricare da VVVVID all'interno del file **downloads_list**, che contiene già degli esempi. A questo punto basterà avviare il programma: 
+```sh
+python main.py
+```
+
 ### Note:
 - Se avete più link, vanno posizionati ognuno su una linea a parte.
 - Le linee che cominciano con **#** saranno ignorate, può tornare utile se volete ignorare temporaneamente qualcosa ad esempio.

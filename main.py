@@ -165,11 +165,8 @@ def main():
 	# Get anime list from local file, ignoring commented lines and empty lines
 	with open("downloads_list.txt", 'r') as f:
 		for line in f:
-			if line.strip() == "":
-				continue
-
 			line = line.strip() + '/'
-			if not line.startswith('#'):
+			if not line.startswith('#') and line != "/":
 				dl_from_vvvvid(line, requests_obj, ffmpeg_local)
 
 

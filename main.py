@@ -16,6 +16,9 @@ from colorama import Fore, Back, Style
 import vvvvid_scraper
 from text_utility import os_fix_filename
 
+import signal
+import sys
+
 # Defining Download folder
 current_dir = os.path.dirname(os.path.realpath(__file__))
 dl_dir = os.path.join(current_dir, "Downloads")
@@ -111,10 +114,19 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=''):
 			with YoutubeDL(ydl_opts) as ydl:
 			    ydl.download([ep_url])
 
+def sigterm_handler(_signo, _stack_frame):
+    print(f"\n{Fore.RED}[Interrupt Handler]{Style.RESET_ALL} Esecuzione programma interrotta")
+    # Raises SystemExit(0):
+    sys.exit(0)
 
 def main():
 	# Getting Colorama utility ready to work
 	colorama_init(autoreset=True)
+
+	
+	signal.signal(signal.SIGTERM, sigterm_handler)
+	signal.signal(signal.SIGINT, sigterm_handler)
+
 
 	# Printing warning if on Windows
 	if system() == 'Windows':

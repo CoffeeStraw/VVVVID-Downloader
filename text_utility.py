@@ -7,10 +7,11 @@ from platform import system
 from re import sub as re_sub
 
 
-def os_fix_filename(text):
-    '''
-    Correct the text if the script is running from Microsoft OS
-    '''
+def os_fix_filename(filename):
+    """Alter filenames containing illegal characters, depending on the OS.
+
+    Ref: https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names/31976060#31976060
+    """
     if system() == 'Windows':
-        return re_sub(r'[\\\/\:\*\?\"\<\>\|]+', '', text)
-    return text
+        return re_sub(r'[\<\>\:\"\/\\\|\?\*]+', '', filename)
+    return re_sub(r'[\/]+', '\\', filename)

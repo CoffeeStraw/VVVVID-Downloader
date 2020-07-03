@@ -1,5 +1,5 @@
 """
-VVVVID Downloader - Text Utility Functions
+VVVVID Downloader - Utility Functions
 Author: CoffeeStraw
 GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 """
@@ -14,4 +14,4 @@ def os_fix_filename(filename):
     """
     if system() == "Windows":
         return re_sub(r"[\<\>\:\"\/\\\|\?\*]+", "", filename)
-    return re_sub(r"[\/]+", "\\", filename)
+    return re_sub(r"[\/]+", r"\\", filename)

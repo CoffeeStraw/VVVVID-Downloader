@@ -16,7 +16,7 @@ import requests
 from youtube_dl import YoutubeDL
 
 import vvvvid_scraper
-from text_utility import os_fix_filename
+from utility import os_fix_filename
 
 # Defining Download folder
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -26,7 +26,7 @@ dl_dir = os.path.join(current_dir, "Downloads")
 def dl_from_vvvvid(url, requests_obj, ffmpeg_local=""):
     """
     General function to process a given link from
-    vvvvid website and to start the download using youtube-dl
+    vvvvid website and start the download
     """
     # Retrieving datas about the given url
     show_id, url_name = vvvvid_scraper.parse_url(url)

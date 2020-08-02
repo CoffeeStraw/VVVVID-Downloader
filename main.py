@@ -167,6 +167,8 @@ def main():
     if which("ffmpeg") is None:
         # If the user is running the script from Windows or Mac, ffmpeg's build can be inside dependency folder
         if system() in ["Windows", "Darwin"]:
+            if os.path.isfile(os.path.join(current_dir, "ffmpeg", ".DS_Store")):
+                os.remove(os.path.join(current_dir, "ffmpeg", ".DS_Store"))
             ffmpeg_dir_files = os.listdir(os.path.join(current_dir, "ffmpeg"))
             ffmpeg_dir_files.remove("readme.md")
 

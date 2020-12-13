@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ```
 3. Il progetto ha un'ultima dipendenza: ffmpeg. VVVVID Downloader è strutturato in modo da poter risolvere localmente (o non) questa dipendenza per gli utenti Windows e Mac. Se non si è mai installato e volete evitare l'aggiunta al PATH (utile se non vi servirà in altre occasioni), allora procedete con i passaggi successivi.
 
-4.  Selezionate la build che necessitate [dal sito ufficiale di ffmpeg](https://ffmpeg.zeranoe.com/builds/), si consiglia la stable con static linking.
+4. Selezionate la build che necessitate [dal sito ufficiale di ffmpeg](https://ffmpeg.org/download.html), si consiglia la "release full".
 5. Estraete la cartella all'interno dell'archivio.
 6. Ponetela all'interno della cartella **ffmpeg** presente all'interno della cartella del progetto, è una cartella vuota contenente unicamente un file *readme*.
 

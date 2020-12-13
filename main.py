@@ -153,11 +153,13 @@ def main():
     }
 
     # Getting conn_id token from vvvvid and putting it into a payload
-    conn_id = {
-        "conn_id": current_session.get(
-            "https://www.vvvvid.it/user/login", headers=headers
-        ).json()["data"]["conn_id"]
-    }
+    login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
+    if "error" in login_res.text.lower():
+        print(
+            f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
+        )
+        sys.exit(-1)
+    conn_id = { "conn_id": login_res.json()["data"]["conn_id"] }
 
     # Creating requests object
     requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}

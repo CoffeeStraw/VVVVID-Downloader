@@ -38,6 +38,7 @@ python main.py
 ### Note:
 - Se avete più link, vanno posizionati ognuno su una linea a parte.
 - Le linee che cominciano con **#** saranno ignorate, può tornare utile se volete ignorare temporaneamente qualcosa ad esempio.
+- Per motivi di copyright VVVVID non è disponibile all'estero, per cui è necessario possedere un indirizzo IP italiano.
 
 ## Licenza
 Il presente software è distribuito sotto licenza MIT. Si legga il file `LICENSE` per ulteriori informazioni.

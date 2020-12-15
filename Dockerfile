@@ -2,7 +2,7 @@
 FROM sampeka/ffmpeg-python:3.6.5-slim
 
 # Directory nella quale imposto l'ambiente di lavoro
-WORKDIR /vvvvid-dowloader
+WORKDIR /app
 
 # Copia dei requisiti di sistema
 COPY requirements.txt .
@@ -17,4 +17,4 @@ RUN rm requirements.txt
 COPY src/ .
 
 # # Buona visione!
-CMD [ "python", "main.py"]
+CMD [ "python", "main.py" ]

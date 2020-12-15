@@ -16,5 +16,5 @@ RUN rm requirements.txt
 # Copia del /src all'interno dell'attuale ambiente di lavoro
 COPY src/ .
 
-# # Buona visione!
+# Buona visione!
 CMD [ "python", "main.py" ]

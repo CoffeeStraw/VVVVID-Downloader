@@ -1,13 +1,9 @@
-<br />
-<p align="center">
-  <h1 align="center">VVVVID Downloader</h1>
-  <p align="center">
-	  Un piccolo script in Python3 per scaricare contenuti multimediali (non a pagamento) offerti da <a href="vvvvid.it/">VVVVID</a>.
-  </p>
-</p>
+![VVVVID-Downloader](https://socialify.git.ci/CoffeeStraw/VVVVID-Downloader/image?description=1&descriptionEditable=Un%20piccolo%20script%20in%20Python3%20per%20scaricare%20contenuti%20multimediali%20(non%20a%20pagamento)%20offerti%20da%20VVVVID&font=KoHo&forks=1&issues=1&language=1&owner=1&pattern=Charlie%20Brown&stargazers=1&theme=Dark)
+
+---
 
 ## Descrizione
-VVVVID Downloader è una comoda soluzione per scaricare dei contenuti dal noto sito VVVVID, tutto ciò di cui necessita è il **link** alla serie/film o ad un singolo episodio, al resto ci penserà lui.
+**VVVVID Downloader** è una comoda soluzione per scaricare dei contenuti dal noto sito **VVVVID**, tutto ciò di cui necessita è il **link** alla serie/film o ad un singolo episodio, al resto ci penserà lui.
  In particolare, sono distinguibili due casistiche per i link:
 - Link a **singolo episodio**: lo script scaricherà da quell'episodio in poi, solamente gli episodi di quella stagione.
 - Link a **pagina di un film/anime** con lista episodi: lo script scaricherà tutti gli episodi di tutte le stagioni disponibili o il singolo film.
@@ -34,6 +30,13 @@ Per poter utilizzare lo script, tutto quello che dovrete fare è porre il link a
 ```sh
 python main.py
 ```
+
+## Docker
+Nel caso in cui si volesse ricorrere all'utilizzo del software **Docker** basterà lanciare il file ```vvvvvid-downloader.sh``` e il gioco sarà fatto! 
+
+Ovviamente come dipendenza di sistema sarà necessario avere Docker stesso, e la cartella dei *Downloads* verrà montata come volume esterno.
+
+Si ricorda infine che prima di lanciare tale script sarà necessario inserire i link desiderati all'interno del file ```downloads_list.txt```.
 
 ### Note:
 - Se avete più link, vanno posizionati ognuno su una linea a parte.

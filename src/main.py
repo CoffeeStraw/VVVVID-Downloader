@@ -19,7 +19,7 @@ import vvvvid_scraper
 from utility import os_fix_filename
 
 # Defining Download folder
-current_dir = os.path.dirname(os.path.realpath(__file__))
+current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 dl_dir = os.path.join(current_dir, "Downloads")
 
 
@@ -145,7 +145,7 @@ def main():
             + Style.RESET_ALL
             + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni.\n"
         )
-
+    
     # Creating persistent session
     current_session = requests.Session()
     headers = {

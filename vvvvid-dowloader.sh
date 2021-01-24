@@ -1,0 +1,1 @@
+docker run -it --rm -v $(pwd)/downloads:/app/Downloads -v $(pwd)/downloads_list.txt:/app/downloads_list.txt azzeccagarbugli/vvvvid-downloader

@@ -18,22 +18,6 @@ def parse_url(url):
     return re.search(pattern, url).groups()
 
 
-def convert_text_to_url_format(text):
-    """
-    Format a text correctly for the url concatenation
-    """
-    text = re.sub(r"[^a-zA-Zàèéìòù\s\-\']", "", text)
-
-    text = text.replace("à", "a")
-    text = re.sub("è|é", "e", text)
-    text = text.replace("ì", "i")
-    text = text.replace("ò", "o")
-    text = text.replace("ù", "u")
-
-    text = re.sub(r"[\s\']+", "-", text)
-    return text.lower()
-
-
 def get_content_infos(requests_obj, show_id):
     """
     Retrieves some informations for the content to beautify output,

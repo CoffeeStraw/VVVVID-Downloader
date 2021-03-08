@@ -85,12 +85,11 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=""):
                 continue
 
             # Build url
-            ep_url = "https://www.vvvvid.it/show/%s/%s/%s/%s/%s" % (
+            ep_url = "https://www.vvvvid.it/show/%s/%s/%s/%s/0" % (
                 show_id,
                 url_name,
                 season_id,
                 episode["video_id"],
-                vvvvid_scraper.convert_text_to_url_format(episode["title"]),
             )
 
             # Preparing options for youtube-dl
@@ -145,7 +144,7 @@ def main():
             + Style.RESET_ALL
             + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni.\n"
         )
-    
+
     # Creating persistent session
     current_session = requests.Session()
     headers = {
@@ -159,7 +158,7 @@ def main():
             f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
         )
         sys.exit(-1)
-    conn_id = { "conn_id": login_res.json()["data"]["conn_id"] }
+    conn_id = {"conn_id": login_res.json()["data"]["conn_id"]}
 
     # Creating requests object
     requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}

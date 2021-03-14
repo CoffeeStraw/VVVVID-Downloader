@@ -149,11 +149,20 @@ def main():
 
     # Getting conn_id token from vvvvid and putting it into a payload
     login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
-    if "error" in login_res.text.lower():
+    login_res_text = login_res.text.lower()
+
+    if "error" in login_res_text:
         print(
             f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
         )
         sys.exit(-1)
+
+    if "access denied" in login_res_text:
+        print(
+            f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
+        )
+        sys.exit(-1)
+
     conn_id = {"conn_id": login_res.json()["data"]["conn_id"]}
 
     # Creating requests object

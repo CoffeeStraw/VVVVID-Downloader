@@ -30,8 +30,8 @@ def dl_from_vvvvid(url, requests_obj):
     vvvvid website and start the download
     """
     # Retrieving datas about the given url
-    show_id, url_name = vvvvid_scraper.parse_url(url)
-    seasons = vvvvid_scraper.get_seasons(requests_obj, url, show_id, url_name)
+    show_id = vvvvid_scraper.parse_url(url)
+    seasons = vvvvid_scraper.get_seasons(requests_obj, url, show_id)
     cont_title, cont_description = vvvvid_scraper.get_content_infos(
         requests_obj, show_id
     )
@@ -86,9 +86,8 @@ def dl_from_vvvvid(url, requests_obj):
                 continue
 
             # Build url
-            ep_url = "https://www.vvvvid.it/show/%s/%s/%s/%s/0" % (
+            ep_url = "https://www.vvvvid.it/show/%s/0/%s/%s/0" % (
                 show_id,
-                url_name,
                 season_id,
                 episode["video_id"],
             )
@@ -136,8 +135,8 @@ def main():
     # Printing warning if on Windows
     if system() == "Windows":
         print(
-            Style.BRIGHT
-            + "Nota Bene: "
+            Fore.YELLOW
+            + "NOTA BENE: "
             + Style.RESET_ALL
             + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni.\n"
         )

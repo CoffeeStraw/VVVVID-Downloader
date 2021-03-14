@@ -4,18 +4,24 @@ Author: CoffeeStraw
 GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 """
 import re
+import sys
 from copy import deepcopy
+from colorama import Fore, Back, Style
 
 
 def parse_url(url):
     """
     Parse a given link to extract show_id and content name (url formatted)
     """
-    # Compatibility with old link format
-    url = url.replace("/#!show/", "/show/")
-    # Parsing URL
-    pattern = r"show/([0-9]+)/(.+?)/"
-    return re.search(pattern, url).groups()
+    # Parsing URL (and checks validity)
+    pattern = r"show/([0-9]+)/"
+    res = re.search(pattern, url)
+    if not res:
+        print(
+            f'{Fore.RED}[ERRORE]{Style.RESET_ALL} L\'URL fornito ("{url}") non è valido. Si prega di controllarlo e riprovare.'
+        )
+        sys.exit(-1)
+    return res.group(1)
 
 
 def get_content_infos(requests_obj, show_id):
@@ -33,7 +39,7 @@ def get_content_infos(requests_obj, show_id):
     return json_file["data"]["title"], json_file["data"]["description"]
 
 
-def get_seasons(requests_obj, url, show_id, url_name):
+def get_seasons(requests_obj, url, show_id):
     """
     Returns a dictionary containing seasons with url
     """
@@ -48,34 +54,35 @@ def get_seasons(requests_obj, url, show_id, url_name):
         .json()
     )
 
+    if json_file["result"] == "error":
+        print(
+            f'{Fore.RED}[ERRORE]{Style.RESET_ALL} L\'URL fornito ("{url}") non è valido. Si prega di controllarlo e riprovare.'
+        )
+        sys.exit(-1)
+
     # Extracting seasons from json
     seasons = {}
-    for i, season in enumerate(json_file["data"]):
-        seasons[str(json_file["data"][i]["season_id"])] = {
-            "name": json_file["data"][i]["name"],
-            "episodes": json_file["data"][i]["episodes"],
+    for season in json_file["data"]:
+        seasons[str(season["season_id"])] = {
+            "name": season["name"],
+            "episodes": season["episodes"],
         }
 
     # Check if the link is a link to a single episode.
     # If it is, then return only a single season with episodes starting from the selected one
-    # IMPROVABLE? IT IS A DIRTY SOLUTION
-    pattern = url_name + "(.+)$"
-    additional_infos = re.findall(pattern, url)[0]
+    pattern = f"show/{show_id}/" + r".+?/(.+?)/(.+?)/.*"
+    additional_infos = re.search(pattern, url)
 
-    if additional_infos != "/":
-        stop = False
-        additional_infos = re.findall("/(.+)/(.+)/(.+)/", additional_infos)[0]
+    if additional_infos:
+        season_id, episode_id = additional_infos.groups()
 
-        seasons_c = deepcopy(seasons)
-        for season_id, season in seasons_c.items():
-            if not stop and season_id == additional_infos[0]:
-                for j, episode in enumerate(season["episodes"]):
-                    if str(episode["video_id"]) == str(additional_infos[1]):
-                        stop = True
-                        break
-                    else:
-                        del seasons[season_id]["episodes"][0]
+        seasons = {season_id: seasons[season_id]}
+        episodes = deepcopy(seasons[season_id]["episodes"])
+
+        for e in episodes:
+            if str(e["video_id"]) != episode_id:
+                del seasons[season_id]["episodes"][0]
             else:
-                del seasons[season_id]
+                break
 
     return seasons

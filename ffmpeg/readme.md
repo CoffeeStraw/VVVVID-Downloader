@@ -1,1 +1,0 @@
-Place your ffmpeg extracted folder here.

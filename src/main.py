@@ -20,10 +20,11 @@ from utility import os_fix_filename
 
 # Defining Download folder
 current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+dl_list_dir = os.path.join(current_dir, "downloads_list.txt")
 dl_dir = os.path.join(current_dir, "Downloads")
 
 
-def dl_from_vvvvid(url, requests_obj, ffmpeg_local=""):
+def dl_from_vvvvid(url, requests_obj):
     """
     General function to process a given link from
     vvvvid website and start the download
@@ -99,10 +100,6 @@ def dl_from_vvvvid(url, requests_obj, ffmpeg_local=""):
                 "continuedl": True,
             }
 
-            # If the script is running either from Windows or Mac, get ffmpeg locally if not available
-            if ffmpeg_local:
-                ydl_opts["ffmpeg_location"] = ffmpeg_local
-
             # Print information to the user: the episode is ready to be downloaded
             print(
                 "\n%sEpisodio %s: %s%s - %sscaricando\n"
@@ -163,43 +160,12 @@ def main():
     # Creating requests object
     requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}
 
-    # Check if ffmpeg is available in PATH
-    ffmpeg_local = ""
-    if which("ffmpeg") is None:
-        # If the user is running the script from Windows or Mac, ffmpeg's build can be inside dependency folder
-        if system() in ["Windows", "Darwin"]:
-            if os.path.isfile(os.path.join(current_dir, "ffmpeg", ".DS_Store")):
-                os.remove(os.path.join(current_dir, "ffmpeg", ".DS_Store"))
-            ffmpeg_dir_files = os.listdir(os.path.join(current_dir, "ffmpeg"))
-            ffmpeg_dir_files.remove("readme.md")
-
-            # If the directory is ambiguous stop the script
-            if len(ffmpeg_dir_files) > 1:
-                print(
-                    "La tua directory di ffmpeg contiene troppi file/cartelle. Assicurati che contenga solo il readme e la cartella con la build di ffmpeg."
-                )
-                quit()
-            elif len(ffmpeg_dir_files) == 0:
-                print(
-                    "Questo script ha una dipendenza da ffmpeg, che non risulta essere installato. Per maggiori informazioni, consulta il readme sulla pagina GitHub del progetto."
-                )
-                quit()
-
-            ffmpeg_local = os.path.join(
-                current_dir, "ffmpeg", ffmpeg_dir_files[0], "bin"
-            )
-        else:
-            print(
-                "Questo script ha una dipendenza da ffmpeg, che non risulta essere installato. Per maggiori informazioni, consulta il readme sulla pagina GitHub del progetto, nella sezione installazione per Ubuntu."
-            )
-            quit()
-
     # Get anime list from local file, ignoring commented lines and empty lines
-    with open("downloads_list.txt", "r") as f:
+    with open(dl_list_dir, "r") as f:
         for line in f:
             line = line.strip() + "/"
             if not line.startswith("#") and line != "/":
-                dl_from_vvvvid(line, requests_obj, ffmpeg_local)
+                dl_from_vvvvid(line, requests_obj)
 
 
 if __name__ == "__main__":

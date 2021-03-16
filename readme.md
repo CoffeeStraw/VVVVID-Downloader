@@ -12,9 +12,7 @@ Durante lo sviluppo si è scelto di adottare queste convenzioni poiché sono ris
 
 ## ⚙️ Installazione
 ### Release (Windows)
-*NON ANCORA FUNZIONANTE, per il momento riferirsi a **Per developer**.*
-
-Scaricate [l'ultima release](https://github.com/CoffeeStraw/VVVVID-Downloader/releases). Vi ritroverete con un *.zip*, che dovrete scompattare. Per avviare il programma basterà quindi lanciare l'eseguibile.
+Scaricate [l'ultima release](https://github.com/CoffeeStraw/VVVVID-Downloader/releases). Vi ritroverete con un *.zip*, che dovrete scompattare. Per avviare il programma basterà quindi lanciare "VVVVID Downloader.bat".
 
 ### Docker
 Per installare ed utilizzare il software tramite **Docker**, basterà lanciare il file ```vvvvvid-downloader.sh```. Esso si occuperà di lanciare il container e monterà la cartella dei *Downloads* come volume esterno.

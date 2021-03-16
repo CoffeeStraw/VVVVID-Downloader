@@ -18,10 +18,10 @@ from youtube_dl import YoutubeDL
 import vvvvid_scraper
 from utility import os_fix_filename
 
-# Defining Download folder
+# Defining paths
 current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-dl_list_dir = os.path.join(current_dir, "downloads_list.txt")
-dl_dir = os.path.join(current_dir, "Downloads")
+dl_list_path = os.path.join(current_dir, "downloads_list.txt")
+dl_path = os.path.join(current_dir, "Downloads")
 
 
 def dl_from_vvvvid(url, requests_obj):
@@ -51,10 +51,10 @@ def dl_from_vvvvid(url, requests_obj):
     for season_id, season in seasons.items():
         # Creating content directory if not existing
         content_dir = os.path.join(
-            dl_dir, os_fix_filename(cont_title + " - " + season["name"])
+            dl_path, os_fix_filename(cont_title + " - " + season["name"])
         ).replace("%", "%%")
         if not os.path.exists(content_dir):
-            os.makedirs(content_dir)
+            os.mkdir(content_dir)
 
         # Checking episodes downloaded to accelerate a little bit youtube-dl checks
         episodes_downloaded = []
@@ -99,6 +99,13 @@ def dl_from_vvvvid(url, requests_obj):
                 "continuedl": True,
             }
 
+            # If we're using the release with .exe,
+            # ffmpeg is included and we tell where it is to youtube-dl
+            if hasattr(sys, "_MEIPASS"):
+                ydl_opts["ffmpeg_location"] = os.path.join(
+                    getattr(sys, "_MEIPASS"), "./ffmpeg/bin/"
+                )
+
             # Print information to the user: the episode is ready to be downloaded
             print(
                 "\n%sEpisodio %s: %s%s - %sscaricando\n"
@@ -132,6 +139,21 @@ def main():
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
+    # Create downloads_list and Downloads folder (if missing)
+    if not os.path.exists(dl_list_path):
+        open(dl_list_path, "a").close()
+        print(
+            Fore.YELLOW
+            + "[WARNING] "
+            + Style.RESET_ALL
+            + "Il file downloads_list non era presente ed è stato creato.\n"
+            + "Per cominciare ad usare il programma, inserire uno o più link.\n\n"
+            + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"
+        )
+        sys.exit(0)
+    if not os.path.exists(dl_path):
+        os.mkdir(dl_path)
+
     # Printing warning if on Windows
     if system() == "Windows":
         print(
@@ -151,12 +173,12 @@ def main():
     login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
     login_res_text = login_res.text.lower()
 
+    # Check for errors
     if "error" in login_res_text:
         print(
             f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
         )
         sys.exit(-1)
-
     if "access denied" in login_res_text:
         print(
             f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
@@ -169,11 +191,24 @@ def main():
     requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}
 
     # Get anime list from local file, ignoring commented lines and empty lines
-    with open(dl_list_dir, "r") as f:
+    with open(dl_list_path, "r") as f:
+        at_least_one = False
         for line in f:
             line = line.strip() + "/"
             if not line.startswith("#") and line != "/":
                 dl_from_vvvvid(line, requests_obj)
+                at_least_one = True
+
+    if not at_least_one:
+        print(
+            Fore.YELLOW
+            + "[WARNING] "
+            + Style.RESET_ALL
+            + "Il file downloads_list è vuoto oppure contiene solo righe commentate.\n"
+            + "Per cominciare ad usare il programma, inserire uno o più link.\n\n"
+            + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"
+        )
+        sys.exit(0)
 
 
 if __name__ == "__main__":

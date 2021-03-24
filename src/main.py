@@ -15,7 +15,7 @@ from colorama import Fore, Back, Style
 import requests
 from youtube_dl import YoutubeDL
 
-import vvvvid_scraper
+import vvvvid
 from utility import os_fix_filename
 
 # Defining paths
@@ -30,11 +30,9 @@ def dl_from_vvvvid(url, requests_obj):
     vvvvid website and start the download
     """
     # Retrieving datas about the given url
-    show_id = vvvvid_scraper.parse_url(url)
-    seasons = vvvvid_scraper.get_seasons(requests_obj, url, show_id)
-    cont_title, cont_description = vvvvid_scraper.get_content_infos(
-        requests_obj, show_id
-    )
+    show_id = vvvvid.parse_url(url)
+    seasons = vvvvid.get_seasons(requests_obj, url, show_id)
+    cont_title, cont_description = vvvvid.get_content_infos(requests_obj, show_id)
 
     # Printing content informations to the user
     print(

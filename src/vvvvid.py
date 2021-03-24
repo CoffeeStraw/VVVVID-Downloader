@@ -1,5 +1,5 @@
 """
-VVVVID Downloader - VVVVID Scraper Utility Functions
+VVVVID Downloader - VVVVID Utility Functions
 Author: CoffeeStraw
 GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 """

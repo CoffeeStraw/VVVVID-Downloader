@@ -101,7 +101,7 @@ def dl_from_vvvvid(url, requests_obj):
             # ffmpeg is included and we tell where it is to youtube-dl
             if hasattr(sys, "_MEIPASS"):
                 ydl_opts["ffmpeg_location"] = os.path.join(
-                    getattr(sys, "_MEIPASS"), "./ffmpeg/bin/"
+                    getattr(sys, "_MEIPASS"), "ffmpeg", "bin"
                 )
 
             # Print information to the user: the episode is ready to be downloaded

@@ -45,6 +45,12 @@ def dl_from_vvvvid(url, requests_obj):
         )
     )
 
+    # Check for empty seasons
+    if not seasons:
+        print(
+            f'\n{Fore.YELLOW}[WARNING]{Style.RESET_ALL} L\'URL fornito ("{url}") non contiene alcun episodio scaricabile.\nSi prega di controllarlo e riprovare.\n'
+        )
+
     # Iterate over the seasons obtained from the url in the txt
     for season_id, season in seasons.items():
         # Creating content directory if not existing
@@ -158,7 +164,7 @@ def main():
             Fore.YELLOW
             + "NOTA BENE: "
             + Style.RESET_ALL
-            + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file potrebbero subire delle variazioni.\n"
+            + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file creati potrebbero subire delle variazioni.\n"
         )
 
     # Creating persistent session

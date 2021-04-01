@@ -75,14 +75,23 @@ def get_seasons(requests_obj, url, show_id):
 
     if additional_infos:
         season_id, episode_id = additional_infos.groups()
-
         seasons = {season_id: seasons[season_id]}
-        episodes = deepcopy(seasons[season_id]["episodes"])
 
-        for e in episodes:
-            if str(e["video_id"]) != episode_id:
+        for _ in range(len(seasons[season_id]["episodes"])):
+            curr_ep = seasons[season_id]["episodes"][0]
+            if str(curr_ep["video_id"]) != episode_id:
                 del seasons[season_id]["episodes"][0]
             else:
                 break
+
+    # Check for invalid episodes and delete them (atm of writing, only "lives" are considered invalid)
+    for season_id in list(seasons.keys()):
+        for i in range(len(seasons[season_id]["episodes"]) - 1, -1, -1):
+            if "live" in seasons[season_id]["episodes"][i]:
+                del seasons[season_id]["episodes"][i]
+
+        # Check if current season has any episode left
+        if not len(seasons[season_id]["episodes"]):
+            del seasons[season_id]
 
     return seasons

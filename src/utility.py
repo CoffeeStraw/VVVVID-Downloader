@@ -88,15 +88,9 @@ class ProgressBar:
 
 def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
     """Download a video using ffmpeg, visualizing the output with a progress bar."""
-    # Get ffmpeg location (if using release, ffmpeg is included)
-    ffmpeg_path = (
-        os.path.join(getattr(sys, "_MEIPASS"), "ffmpeg", "bin")
-        if hasattr(sys, "_MEIPASS")
-        else "ffmpeg"
-    )
     # Build command
     cmd = [
-        ffmpeg_path,
+        "ffmpeg",
         "-y",
         "-loglevel",
         "verbose",

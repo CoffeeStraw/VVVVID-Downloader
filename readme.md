@@ -25,15 +25,16 @@ Per poter utilizzare VVVVID Downloader, tutto quello che dovrete fare è porre i
 - Per motivi di copyright VVVVID non è disponibile all'estero, per cui è necessario possedere un indirizzo IP italiano.
 
 ## 👨‍💻 Developers - Release Windows
-Per creare l'eseguibile Windows viene utilizzato **pyinstaller**. Una volta installato con **pip**, i passaggi sono i seguenti:
-- Posizionarsi nella cartella ```src/``` del progetto;
-- Creare una cartella ```ffmpeg/``` contenente l'ultima release di ffmpeg;
+Per creare l'eseguibile Windows viene utilizzato **pyinstaller**. I passaggi sono i seguenti:
+- Creare un ambiente virtuale con ```venv``` ed attivarlo;
+- Installare i requirements ed installare ```pyinstaller``` con **pip**;
 - Produrre l'eseguibile col comando:
 ```sh
-pyinstaller -F --add-data "./ffmpeg/bin/*;./ffmpeg/bin/" --add-data "./ffmpeg/presets/*;./ffmpeg/presets/" main.py
+pyinstaller -F main.py
 ```
-- Affiancare all'eseguibile i files ```downloads_list.txt``` e ```VVVVID Downloader.bat```, che potete trovare nelle release vecchie;
-- Spostare l'eseguibile in una nuova cartella denominata ```bin/```.
+- Affiancare all'eseguibile i file ```downloads_list.txt``` e ```VVVVID Downloader.bat```, che potete trovare nelle release vecchie;
+- Spostare l'eseguibile in una nuova cartella denominata ```bin/```;
+- Includere nella cartella ```bin/``` anche l'eseguibile di ```ffmpeg```.
 
 ## 🧭 Licenza
 Il presente software è distribuito sotto licenza MIT. Si legga il file `LICENSE` per ulteriori informazioni.

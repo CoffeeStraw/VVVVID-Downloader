@@ -1,3 +1,4 @@
 requests
 youtube-dl
 colorama
+tqdm

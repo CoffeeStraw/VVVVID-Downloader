@@ -10,13 +10,13 @@ from shutil import which
 from platform import system
 
 from colorama import init as colorama_init
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 import requests
 from youtube_dl import YoutubeDL
 
 import vvvvid
-from utility import os_fix_filename
+from utility import os_fix_filename, ffmpeg_dl
 
 # Defining paths
 current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -36,27 +36,25 @@ def dl_from_vvvvid(url, requests_obj):
 
     # Printing content informations to the user
     print(
-        "%sIn preparazione: %s\n%sDescrizione:     %s"
-        % (
-            Style.BRIGHT,
-            Back.BLACK + Fore.WHITE + cont_title,
-            Style.RESET_ALL + Style.BRIGHT,
-            cont_description,
-        )
+        f"{Style.BRIGHT}In preparazione: {Fore.BLUE + cont_title + Style.RESET_ALL}\n"
+        + f"{Style.BRIGHT}Descrizione:     {Style.RESET_ALL + cont_description}"
     )
 
     # Check for empty seasons
     if not seasons:
         print(
-            f'\n{Fore.YELLOW}[WARNING]{Style.RESET_ALL} L\'URL fornito ("{url}") non contiene alcun episodio scaricabile.\nSi prega di controllarlo e riprovare.\n'
+            f'\n{Fore.YELLOW}[WARNING]{Style.RESET_ALL} L\'URL fornito ("{url}") non contiene alcun episodio scaricabile.\n'
+            + "Si prega di controllarlo e riprovare.\n"
         )
 
     # Iterate over the seasons obtained from the url in the txt
     for season_id, season in seasons.items():
+        print(f"\n{Style.BRIGHT}Stagione: {Fore.BLUE + season['name']}")
+
         # Creating content directory if not existing
         content_dir = os.path.join(
-            dl_path, os_fix_filename(cont_title + " - " + season["name"])
-        ).replace("%", "%%")
+            dl_path, os_fix_filename(f'{cont_title} - {season["name"]}')
+        )
         if not os.path.exists(content_dir):
             os.mkdir(content_dir)
 
@@ -71,21 +69,17 @@ def dl_from_vvvvid(url, requests_obj):
             # Check if episode is public released
             if not episode["playable"]:
                 print(
-                    "\nL'episodio %s non è stato ancora reso disponibile.%s Lo sarà il: %s"
-                    % (episode["number"], Style.BRIGHT, episode["availability_date"])
+                    f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + Fore.RED} non ancora disponibile. "
+                    + f"{Style.RESET_ALL}Lo sarà il: {episode['availability_date']}"
                 )
-                break
 
             # Build episode name
-            ep_name = os_fix_filename(
-                "%s - %s" % (episode["number"], episode["title"])
-            ).replace("%", "%%")
+            ep_name = os_fix_filename(f"{episode['number']} - {episode['title']}")
 
             # If episode is already downloaded, skip it
             if ep_name in episodes_downloaded:
                 print(
-                    "\nEpisodio %s: %s già scaricato"
-                    % (episode["number"], episode["title"] + Fore.YELLOW)
+                    f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + episode['title'] + Fore.YELLOW} già scaricato"
                 )
                 continue
 
@@ -96,41 +90,38 @@ def dl_from_vvvvid(url, requests_obj):
                 episode["video_id"],
             )
 
-            # Preparing options for youtube-dl
-            ydl_opts = {
-                "format": "best",
-                "outtmpl": "%s/%s.%%(ext)s" % (content_dir, ep_name),
-                "continuedl": True,
-            }
-
-            # If we're using the release with .exe,
-            # ffmpeg is included and we tell where it is to youtube-dl
-            if hasattr(sys, "_MEIPASS"):
-                ydl_opts["ffmpeg_location"] = os.path.join(
-                    getattr(sys, "_MEIPASS"), "ffmpeg", "bin"
-                )
-
             # Print information to the user: the episode is ready to be downloaded
             print(
-                "\n%sEpisodio %s: %s%s - %sscaricando\n"
-                % (
-                    Style.BRIGHT,
-                    episode["number"],
-                    Style.RESET_ALL,
-                    episode["title"],
-                    Fore.GREEN,
-                )
+                f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + episode['title']} {Fore.GREEN}in download"
             )
 
-            # Start to download the selected file
-            with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([ep_url])
+            # Get m3u8 link and HTTP headers
+            with YoutubeDL({"quiet": True}) as ydl:
+                r = ydl.extract_info(ep_url, download=False)
+
+                media_url = r["url"]
+                http_headers = "".join(
+                    [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
+                )
+
+            # Download the episode using ffmpeg
+            ffmpeg_dl(
+                media_url,
+                http_headers,
+                os.path.join(content_dir, f"{ep_name}.mp4.part"),
+            )
+
+            # Remove ".part" from end of file
+            os.rename(
+                os.path.join(content_dir, f"{ep_name}.mp4.part"),
+                os.path.join(content_dir, f"{ep_name}.mp4"),
+            )
 
 
 def sig_handler(_signo, _stack_frame):
     """Prints a goodbye message to the user before quitting program."""
     print(
-        f"\n{Fore.RED}[Interrupt Handler]{Style.RESET_ALL} Esecuzione programma interrotta"
+        f"\n\n{Fore.RED}[Interrupt Handler]{Style.RESET_ALL} Esecuzione programma interrotta\n"
     )
     sys.exit(0)
 
@@ -147,9 +138,7 @@ def main():
     if not os.path.exists(dl_list_path):
         open(dl_list_path, "a").close()
         print(
-            Fore.YELLOW
-            + "[WARNING] "
-            + Style.RESET_ALL
+            f"{Fore.YELLOW}[WARNING]{Style.RESET_ALL} "
             + "Il file downloads_list non era presente ed è stato creato.\n"
             + "Per cominciare ad usare il programma, inserire uno o più link.\n\n"
             + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"
@@ -161,9 +150,7 @@ def main():
     # Printing warning if on Windows
     if system() == "Windows":
         print(
-            Fore.YELLOW
-            + "NOTA BENE: "
-            + Style.RESET_ALL
+            f"{Fore.YELLOW}NOTA BENE:{Style.RESET_ALL} "
             + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file creati potrebbero subire delle variazioni.\n"
         )
 
@@ -205,9 +192,7 @@ def main():
 
     if not at_least_one:
         print(
-            Fore.YELLOW
-            + "[WARNING] "
-            + Style.RESET_ALL
+            f"{Fore.YELLOW}[WARNING]{Style.RESET_ALL} "
             + "Il file downloads_list è vuoto oppure contiene solo righe commentate.\n"
             + "Per cominciare ad usare il programma, inserire uno o più link.\n\n"
             + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"

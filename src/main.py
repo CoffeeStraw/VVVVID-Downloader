@@ -168,12 +168,12 @@ def main():
     # Check for errors
     if "error" in login_res_text:
         print(
-            f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
+            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
         )
         sys.exit(-1)
     if "access denied" in login_res_text:
         print(
-            f"{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
+            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
         )
         sys.exit(-1)
 
@@ -193,7 +193,7 @@ def main():
 
     if not at_least_one:
         print(
-            f"{Fore.YELLOW}[WARNING]{Style.RESET_ALL} "
+            f"\n{Fore.YELLOW}[WARNING]{Style.RESET_ALL} "
             + "Il file downloads_list è vuoto oppure contiene solo righe commentate.\n"
             + "Per cominciare ad usare il programma, inserire uno o più link.\n\n"
             + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"

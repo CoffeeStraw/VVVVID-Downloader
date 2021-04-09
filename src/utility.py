@@ -100,8 +100,6 @@ def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
         media_url,
         "-c",
         "copy",
-        "-f",
-        "mp4",
         "-bsf:a",
         "aac_adtstoasc",
         output_path,

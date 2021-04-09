@@ -36,7 +36,7 @@ def dl_from_vvvvid(url, requests_obj):
 
     # Printing content informations to the user
     print(
-        f"{Style.BRIGHT}In preparazione: {Fore.BLUE + cont_title + Style.RESET_ALL}\n"
+        f"\n{Style.BRIGHT}In preparazione: {Fore.BLUE + cont_title + Style.RESET_ALL}\n"
         + f"{Style.BRIGHT}Descrizione:     {Style.RESET_ALL + cont_description}"
     )
 
@@ -72,6 +72,7 @@ def dl_from_vvvvid(url, requests_obj):
                     f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + Fore.RED} non ancora disponibile. "
                     + f"{Style.RESET_ALL}Lo sarà il: {episode['availability_date']}"
                 )
+                continue
 
             # Build episode name
             ep_name = os_fix_filename(f"{episode['number']} - {episode['title']}")
@@ -108,13 +109,13 @@ def dl_from_vvvvid(url, requests_obj):
             ffmpeg_dl(
                 media_url,
                 http_headers,
-                os.path.join(content_dir, f"{ep_name}.mp4.part"),
+                os.path.join(content_dir, f"{ep_name}.part.mkv"),
             )
 
             # Remove ".part" from end of file
             os.rename(
-                os.path.join(content_dir, f"{ep_name}.mp4.part"),
-                os.path.join(content_dir, f"{ep_name}.mp4"),
+                os.path.join(content_dir, f"{ep_name}.part.mkv"),
+                os.path.join(content_dir, f"{ep_name}.mkv"),
             )
 
 
@@ -151,7 +152,7 @@ def main():
     if system() == "Windows":
         print(
             f"{Fore.YELLOW}NOTA BENE:{Style.RESET_ALL} "
-            + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file creati potrebbero subire delle variazioni.\n"
+            + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file creati potrebbero subire delle variazioni."
         )
 
     # Creating persistent session

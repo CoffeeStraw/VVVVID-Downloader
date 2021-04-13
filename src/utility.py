@@ -107,7 +107,7 @@ def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
 
     # Execute ffmpeg and visualize its outputs
     with subprocess.Popen(
-        cmd, stderr=subprocess.PIPE, bufsize=1, text=True
+        cmd, stderr=subprocess.PIPE, bufsize=1, text=True, encoding="utf-8"
     ) as p, ProgressBar() as pbar:
         for line in p.stderr:
             pbar.update(line)

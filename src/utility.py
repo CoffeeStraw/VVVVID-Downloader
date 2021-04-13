@@ -69,17 +69,17 @@ class ProgressBar:
         if progress:
             progress = progress.groups()
 
-            # Update filesize
+            # Update filesize (in MB if possible)
             if progress[1] == "kB":
                 self.tqdm_pbar.desc = f"Size: {float(progress[0]) / 1024:.2f} MB"
             else:
-                self.tqdm_pbar.desc = f"Size: {progress[0]} {progress[1]}"
+                self.tqdm_pbar.desc = f"Size: {float(progress[0]):.2f} {progress[1]}"
 
-            # Update speed
+            # Update speed (in MB/s if possible)
             if progress[6] == "kbits/s":
-                self.tqdm_pbar.unit = f"{float(progress[5]) / 1024:.2f} mbits/s"
+                self.tqdm_pbar.unit = f"{float(progress[5]) / 1024:.2f} MB/s"
             else:
-                self.tqdm_pbar.unit = f"{progress[5]} {progress[6]}"
+                self.tqdm_pbar.unit = f"{float(progress[5]):.2f} {progress[6]}"
 
             # Update progress bar
             current_time = self.hms_to_s(progress[2:5])

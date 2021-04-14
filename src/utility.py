@@ -91,6 +91,7 @@ def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
     # Build command
     cmd = [
         "ffmpeg",
+        "-nostdin",
         "-y",
         "-loglevel",
         "verbose",

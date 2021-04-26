@@ -20,6 +20,10 @@ from utility import os_fix_filename, ffmpeg_dl
 
 # Defining paths
 current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    # If executed on Windows release, we get current directory differently
+    current_dir = os.path.dirname(os.getcwd())
+
 dl_list_path = os.path.join(current_dir, "downloads_list.txt")
 dl_path = os.path.join(current_dir, "Downloads")
 

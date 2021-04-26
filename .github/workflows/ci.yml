@@ -1,0 +1,57 @@
+# Workflow label
+name: CI
+
+# Workflow trigger
+on: [push]
+
+# Always run on powershell
+defaults:
+  run:
+    shell: pwsh
+
+# Workflow tasks
+jobs:
+  # Generate a new release for Windows
+  win_release:
+    name: "Windows release"
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags')
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Python requirements
+        run: |
+          pip install -r .\requirements.txt
+          pip install pyinstaller
+      
+      - name: Generate executable
+        run: pyinstaller -F .\src\main.py
+
+      - name: Download latest FFmpeg
+        run: powershell .\.github\win_release\dl_and_extract.ps1 https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip .\tmp\
+
+      - name: Pack release
+        run: |
+          $release_path = ".\.github\win_release\VVVVID Downloader"
+          New-Item -Path ".\.github\win_release\" -Name "VVVVID Downloader" -ItemType "directory"
+          New-Item -Path $release_path -Name "bin" -ItemType "directory"
+          move ".\.github\win_release\VVVVID Downloader.bat" $release_path
+          move ".\downloads_list.txt" $release_path
+          move ".\dist\main.exe" "$($release_path)\bin\"
+          Get-ChildItem -Directory ".\tmp\" | cd
+          move ".\bin\ffmpeg.exe" "..\..\$($release_path)\bin\"
+          cd ..\..
+          Compress-Archive -Path $release_path -DestinationPath ".\.github\win_release\VVVVID_Downloader_Windows.zip"
+      
+      - name: Create a new release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: .\.github\win_release\VVVVID_Downloader_Windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

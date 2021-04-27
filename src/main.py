@@ -95,19 +95,26 @@ def dl_from_vvvvid(url, requests_obj):
                 episode["video_id"],
             )
 
+            # Get m3u8 link and HTTP headers
+            try:
+                with YoutubeDL({"quiet": True}) as ydl:
+                    r = ydl.extract_info(ep_url, download=False)
+                    media_url = r["url"]
+                    http_headers = "".join(
+                        [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
+                    )
+            except KeyError:
+                # Video could be provided by external services (like youtube). In those cases, skip the episode
+                print(
+                    f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + Fore.RED}non fornito dal portale VVVVID.\n"
+                    + f"{Style.RESET_ALL}È possibile che il contenuto venga fornito da un servizio esterno. Il download verrà saltato."
+                )
+                continue
+
             # Print information to the user: the episode is ready to be downloaded
             print(
                 f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + episode['title']} {Fore.GREEN}in download"
             )
-
-            # Get m3u8 link and HTTP headers
-            with YoutubeDL({"quiet": True}) as ydl:
-                r = ydl.extract_info(ep_url, download=False)
-
-                media_url = r["url"]
-                http_headers = "".join(
-                    [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
-                )
 
             # Download the episode using ffmpeg
             ffmpeg_dl(
@@ -121,6 +128,14 @@ def dl_from_vvvvid(url, requests_obj):
                 os.path.join(content_dir, f"{ep_name}.part.mkv"),
                 os.path.join(content_dir, f"{ep_name}.mkv"),
             )
+
+        # It is possible that no episode has been downloaded for the season.
+        # In that case, delete the folder as well.
+        if not os.listdir(content_dir):
+            print(
+                f"\n{Fore.YELLOW}NOTA:{Style.RESET_ALL} Rimozione della cartella creata per {season['name']} (non è stato scaricato alcun contenuto)."
+            )
+            os.rmdir(content_dir)
 
 
 def sig_handler(_signo, _stack_frame):

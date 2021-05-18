@@ -56,9 +56,8 @@ def dl_from_vvvvid(url, requests_obj):
         print(f"\n{Style.BRIGHT}Stagione: {Fore.BLUE + season['name']}")
 
         # Creating content directory if not existing
-        content_dir = os.path.join(
-            dl_path, os_fix_filename(f'{cont_title} - {season["name"]}')
-        )
+        dir_name = os_fix_filename(f'{cont_title} - {season["name"]}')
+        content_dir = os.path.join(dl_path, dir_name)
         if not os.path.exists(content_dir):
             os.mkdir(content_dir)
 
@@ -97,12 +96,13 @@ def dl_from_vvvvid(url, requests_obj):
 
             # Get m3u8 link and HTTP headers
             try:
-                with YoutubeDL({"quiet": True}) as ydl:
-                    r = ydl.extract_info(ep_url, download=False)
-                    media_url = r["url"]
-                    http_headers = "".join(
-                        [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
-                    )
+                with YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+                    r = ydl.extract_info(ep_url, download=False)["formats"][-1]
+
+                media_url = r["url"]
+                http_headers = "".join(
+                    [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
+                )
             except KeyError:
                 # Video could be provided by external services (like youtube). In those cases, skip the episode
                 print(
@@ -117,11 +117,14 @@ def dl_from_vvvvid(url, requests_obj):
             )
 
             # Download the episode using ffmpeg
-            ffmpeg_dl(
+            error = ffmpeg_dl(
                 media_url,
                 http_headers,
                 os.path.join(content_dir, f"{ep_name}.part.mkv"),
             )
+            if error:
+                print(f"{Fore.RED}[ERROR]{Style.RESET_ALL}", error)
+                continue
 
             # Remove ".part" from end of file
             os.rename(
@@ -133,7 +136,7 @@ def dl_from_vvvvid(url, requests_obj):
         # In that case, delete the folder as well.
         if not os.listdir(content_dir):
             print(
-                f"\n{Fore.YELLOW}NOTA:{Style.RESET_ALL} Rimozione della cartella creata per {season['name']} (non è stato scaricato alcun contenuto)."
+                f'\n{Fore.YELLOW}NOTA:{Style.RESET_ALL} Rimozione della cartella creata per "{dir_name}" (non è stato scaricato alcun contenuto).'
             )
             os.rmdir(content_dir)
 

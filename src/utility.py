@@ -10,7 +10,6 @@ import subprocess
 from tqdm import tqdm
 from platform import system
 from functools import reduce
-from colorama import Fore, Style
 
 
 def os_fix_filename(filename):
@@ -111,4 +110,7 @@ def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
         cmd, stderr=subprocess.PIPE, bufsize=1, text=True, encoding="utf-8"
     ) as p, ProgressBar() as pbar:
         for line in p.stderr:
+            if "access denied" in line.lower():
+                return "Il server ha rifiutato l'accesso al file. Si ricorda che con il presente software non è possibile scaricare contenuti a pagamento. Se pensi si tratti di un errore, puoi aprire una issue su GitHub."
+
             pbar.update(line)

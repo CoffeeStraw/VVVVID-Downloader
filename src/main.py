@@ -6,7 +6,7 @@ GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 import os
 import sys
 import signal
-from shutil import which
+import argparse
 from platform import system
 
 from colorama import init as colorama_init
@@ -18,17 +18,51 @@ from youtube_dl import YoutubeDL
 import vvvvid
 from utility import os_fix_filename, ffmpeg_dl
 
-# Defining paths
-current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-    # If executed on Windows release, we get current directory differently
-    current_dir = os.path.dirname(os.getcwd())
 
-dl_list_path = os.path.join(current_dir, "downloads_list.txt")
-dl_path = os.path.join(current_dir, "Downloads")
+def get_arguments():
+    """Define and retrieve CLI options"""
+    # Paths definition
+    current_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        # If executed on Windows release, we get current directory differently
+        current_dir = os.path.dirname(os.getcwd())
+
+    batch_file = os.path.join(current_dir, "downloads_list.txt")
+    output_dir = os.path.join(current_dir, "Downloads")
+
+    # Arguments definition
+    parser = argparse.ArgumentParser(
+        description="Un piccolo script in Python3 per scaricare contenuti multimediali (non a pagamento) offerti da VVVVID.",
+        epilog="Homepage del progetto: https://github.com/CoffeeStraw/VVVVID-Downloader",
+        add_help=False,
+    )
+    parser.add_argument(
+        "-f",
+        "--batch-file",
+        metavar="PATH",
+        default=batch_file,
+        help=f"file contenente gli URL da scaricare, un URL per riga (le righe che cominciano con il carattere '#' verranno ignorate)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        metavar="PATH",
+        default=output_dir,
+        help=f"cartella che conterrà i download",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="arricchisce i messaggi stampati a schermo con log utili al debugging",
+    )
+    parser.add_argument(
+        "-h", "--help", action="help", help="mostra questa schermata di aiuto ed esce"
+    )
+    return parser.parse_args()
 
 
-def dl_from_vvvvid(url, requests_obj):
+def dl_from_vvvvid(url, requests_obj, args):
     """
     General function to process a given link from
     vvvvid website and start the download
@@ -57,7 +91,7 @@ def dl_from_vvvvid(url, requests_obj):
 
         # Creating content directory if not existing
         dir_name = os_fix_filename(f'{cont_title} - {season["name"]}')
-        content_dir = os.path.join(dl_path, dir_name)
+        content_dir = os.path.join(args.output_dir, dir_name)
         if not os.path.exists(content_dir):
             os.mkdir(content_dir)
 
@@ -96,12 +130,22 @@ def dl_from_vvvvid(url, requests_obj):
 
             # Get m3u8 link and HTTP headers
             try:
-                with YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
-                    r = ydl.extract_info(ep_url, download=False)["formats"][-1]
+                ydl_opts = (
+                    {"verbose": True}
+                    if args.verbose
+                    else {"quiet": True, "no_warnings": True}
+                )
 
-                media_url = r["url"]
+                with YoutubeDL(ydl_opts) as ydl:
+                    infos = ydl.extract_info(ep_url, download=False)
+
+                if args.verbose:
+                    print(f"\n{infos}\n")
+
+                infos = infos["formats"][-1]
+                media_url = infos["url"]
                 http_headers = "".join(
-                    [f"{k}: {v}\n" for k, v in r["http_headers"].items()]
+                    [f"{k}: {v}\n" for k, v in infos["http_headers"].items()]
                 )
             except KeyError:
                 # Video could be provided by external services (like youtube). In those cases, skip the episode
@@ -121,6 +165,7 @@ def dl_from_vvvvid(url, requests_obj):
                 media_url,
                 http_headers,
                 os.path.join(content_dir, f"{ep_name}.part.mkv"),
+                args.verbose,
             )
             if error:
                 print(f"{Fore.RED}[ERROR]{Style.RESET_ALL}", error)
@@ -153,13 +198,16 @@ def main():
     # Getting Colorama utility ready to work
     colorama_init(autoreset=True)
 
+    # Get possible CLI options
+    args = get_arguments()
+
     # Set handler functions for SIGTERM and SIGINT
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
-    # Create downloads_list and Downloads folder (if missing)
-    if not os.path.exists(dl_list_path):
-        open(dl_list_path, "a").close()
+    # Create downloads_list.txt and Downloads folder (if missing)
+    if not os.path.exists(args.batch_file):
+        open(args.batch_file, "a").close()
         print(
             f"{Fore.YELLOW}[WARNING]{Style.RESET_ALL} "
             + "Il file downloads_list non era presente ed è stato creato.\n"
@@ -167,8 +215,8 @@ def main():
             + "Per ulteriori informazioni visitate la pagina ufficiale del progetto su GitHub:\nhttps://github.com/CoffeeStraw/VVVVID-Downloader.\n"
         )
         sys.exit(0)
-    if not os.path.exists(dl_path):
-        os.mkdir(dl_path)
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
 
     # Printing warning if on Windows
     if system() == "Windows":
@@ -187,7 +235,6 @@ def main():
     login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
     login_res_text = login_res.text.lower()
 
-    # Check for errors
     if "error" in login_res_text:
         print(
             f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
@@ -205,12 +252,12 @@ def main():
     requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}
 
     # Get anime list from local file, ignoring commented lines and empty lines
-    with open(dl_list_path, "r") as f:
+    with open(args.batch_file, "r") as f:
         at_least_one = False
         for line in f:
             line = line.strip() + "/"
             if not line.startswith("#") and line != "/":
-                dl_from_vvvvid(line, requests_obj)
+                dl_from_vvvvid(line, requests_obj, args)
                 at_least_one = True
 
     if not at_least_one:

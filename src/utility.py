@@ -85,8 +85,8 @@ class ProgressBar:
             self.tqdm_pbar.update(current_time - self.tqdm_pbar.n)
 
 
-def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
-    """Download a video using ffmpeg, visualizing the output with a progress bar."""
+def ffmpeg_dl(media_url, http_headers, output_path, verbose=False):
+    """Download a video using ffmpeg. If not verbose, it visualizes its outputs with a progress bar."""
     # Build command
     cmd = [
         "ffmpeg",
@@ -110,7 +110,11 @@ def ffmpeg_dl(media_url, http_headers, output_path, timeout=30):
         cmd, stderr=subprocess.PIPE, bufsize=1, text=True, encoding="utf-8"
     ) as p, ProgressBar() as pbar:
         for line in p.stderr:
+            if verbose:
+                print(line, end="")
+
             if "access denied" in line.lower():
                 return "Il server ha rifiutato l'accesso al file. Si ricorda che con il presente software non è possibile scaricare contenuti a pagamento. Se pensi si tratti di un errore, puoi aprire una issue su GitHub."
 
-            pbar.update(line)
+            if not verbose:
+                pbar.update(line)

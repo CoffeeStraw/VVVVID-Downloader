@@ -6,6 +6,7 @@ GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 import re
 import os
 import sys
+import time
 import subprocess
 from tqdm import tqdm
 from platform import system
@@ -118,3 +119,8 @@ def ffmpeg_dl(media_url, http_headers, output_path, verbose=False):
 
             if not verbose:
                 pbar.update(line)
+
+    # HACK for Windows users: if they close the console running this script during a download,
+    # without a time.sleep the script will go on and rename the file. Putting a small delay
+    # stops the execution here in this particular case (in normal use-cases 1 millisecond is imperceptible)
+    time.sleep(0.001)

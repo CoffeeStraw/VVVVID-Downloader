@@ -5,8 +5,39 @@ GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 """
 import re
 import sys
+import requests
 from copy import deepcopy
 from colorama import Fore, Back, Style
+
+
+def get_requests_obj():
+    """Create a dictionary to manage a persistent session with the connection ID from VVVVID"""
+
+    # Creating persistent session
+    current_session = requests.Session()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0"
+    }
+
+    # Getting conn_id token from vvvvid and putting it into a payload
+    login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
+    login_res_text = login_res.text.lower()
+
+    if "error" in login_res_text:
+        print(
+            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
+        )
+        sys.exit(-1)
+    if "access denied" in login_res_text:
+        print(
+            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
+        )
+        sys.exit(-1)
+
+    conn_id = {"conn_id": login_res.json()["data"]["conn_id"]}
+
+    # Creating requests object
+    return {"session": current_session, "headers": headers, "payload": conn_id}
 
 
 def parse_url(url):

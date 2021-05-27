@@ -12,7 +12,6 @@ from platform import system
 from colorama import init as colorama_init
 from colorama import Fore, Style
 
-import requests
 from youtube_dl import YoutubeDL
 
 import vvvvid
@@ -41,14 +40,14 @@ def get_arguments():
         "--batch-file",
         metavar="PATH",
         default=batch_file,
-        help=f"file contenente gli URL da scaricare, un URL per riga (le righe che cominciano con il carattere '#' verranno ignorate)",
+        help="file contenente gli URL da scaricare, un URL per riga (le righe che cominciano con il carattere '#' verranno ignorate)",
     )
     parser.add_argument(
         "-o",
         "--output-dir",
         metavar="PATH",
         default=output_dir,
-        help=f"cartella che conterrà i download",
+        help="cartella che conterrà i download",
     )
     parser.add_argument(
         "-v",
@@ -62,11 +61,14 @@ def get_arguments():
     return parser.parse_args()
 
 
-def dl_from_vvvvid(url, requests_obj, args):
+def dl_from_vvvvid(url, args):
     """
     General function to process a given link from
     vvvvid website and start the download
     """
+    # Create a requests object to manage a persistent session with the connection ID from VVVVID
+    requests_obj = vvvvid.get_requests_obj()
+
     # Retrieving datas about the given url
     show_id = vvvvid.parse_url(url)
     seasons = vvvvid.get_seasons(requests_obj, url, show_id)
@@ -172,10 +174,8 @@ def dl_from_vvvvid(url, requests_obj, args):
                 continue
 
             # Remove ".part" from end of file
-            os.rename(
-                os.path.join(content_dir, f"{ep_name}.part.mkv"),
-                os.path.join(content_dir, f"{ep_name}.mkv"),
-            )
+            file_path = os.path.join(content_dir, ep_name)
+            os.rename(file_path + ".part.mkv", file_path + ".mkv")
 
         # It is possible that no episode has been downloaded for the season.
         # In that case, delete the folder as well.
@@ -201,7 +201,7 @@ def main():
     # Get possible CLI options
     args = get_arguments()
 
-    # Set handler functions for SIGTERM and SIGINT
+    # Set a pretty goodbye message for the exit
     signal.signal(signal.SIGTERM, sig_handler)
     signal.signal(signal.SIGINT, sig_handler)
 
@@ -225,39 +225,13 @@ def main():
             + "siccome lo script è stato lanciato da Windows i nomi delle cartelle e dei file creati potrebbero subire delle variazioni."
         )
 
-    # Creating persistent session
-    current_session = requests.Session()
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0"
-    }
-
-    # Getting conn_id token from vvvvid and putting it into a payload
-    login_res = current_session.get("https://www.vvvvid.it/user/login", headers=headers)
-    login_res_text = login_res.text.lower()
-
-    if "error" in login_res_text:
-        print(
-            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è attualmente in manutenzione, controllare il suo stato sul sito e riprovare."
-        )
-        sys.exit(-1)
-    if "access denied" in login_res_text:
-        print(
-            f"\n{Fore.RED}[ERROR]{Style.RESET_ALL} VVVVID è accessibile solo in Italia 🍕 \n\n... Pss, puoi usare una VPN 😏"
-        )
-        sys.exit(-1)
-
-    conn_id = {"conn_id": login_res.json()["data"]["conn_id"]}
-
-    # Creating requests object
-    requests_obj = {"session": current_session, "headers": headers, "payload": conn_id}
-
     # Get anime list from local file, ignoring commented lines and empty lines
     with open(args.batch_file, "r") as f:
         at_least_one = False
         for line in f:
             line = line.strip() + "/"
             if not line.startswith("#") and line != "/":
-                dl_from_vvvvid(line, requests_obj, args)
+                dl_from_vvvvid(line, args)
                 at_least_one = True
 
     if not at_least_one:

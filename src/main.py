@@ -132,10 +132,24 @@ def dl_from_vvvvid(url, args):
 
             # Get m3u8 link and HTTP headers
             try:
+                # Suppress any output if mode is not verbose
                 ydl_opts = (
                     {"verbose": True}
                     if args.verbose
-                    else {"quiet": True, "no_warnings": True}
+                    else {
+                        "quiet": True,
+                        "no_warnings": True,
+                        "ignoreerrors": True,
+                        "logger": type(
+                            "tmp",
+                            (object,),
+                            {
+                                **dict.fromkeys(
+                                    ["warning", "error", "debug"], lambda x, y: None
+                                )
+                            },
+                        ),
+                    }
                 )
 
                 with YoutubeDL(ydl_opts) as ydl:
@@ -149,11 +163,10 @@ def dl_from_vvvvid(url, args):
                 http_headers = "".join(
                     [f"{k}: {v}\n" for k, v in infos["http_headers"].items()]
                 )
-            except KeyError:
-                # Video could be provided by external services (like youtube). In those cases, skip the episode
+            except (TypeError, KeyError):
                 print(
-                    f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + Fore.RED}non fornito dal portale VVVVID.\n"
-                    + f"{Style.RESET_ALL}È possibile che il contenuto venga fornito da un servizio esterno. Il download verrà saltato."
+                    f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + Fore.RED}il contenuto non è scaricabile.\n"
+                    + f"{Style.RESET_ALL}È possibile che il contenuto venga fornito da un servizio esterno e/o abbia restrizioni sull'età. Il download verrà saltato."
                 )
                 continue
 

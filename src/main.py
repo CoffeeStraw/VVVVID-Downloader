@@ -132,7 +132,6 @@ def dl_from_vvvvid(url, args):
 
             # Get m3u8 link and HTTP headers
             try:
-                # Suppress any output if mode is not verbose
                 ydl_opts = (
                     {"verbose": True}
                     if args.verbose
@@ -140,15 +139,15 @@ def dl_from_vvvvid(url, args):
                         "quiet": True,
                         "no_warnings": True,
                         "ignoreerrors": True,
-                        "logger": type(
-                            "tmp",
+                        "logger": type(  # Create a class on-the-fly with three methods doing nothing, to suppress any youtube-dl output
+                            "FakeLogger",
                             (object,),
                             {
                                 **dict.fromkeys(
                                     ["warning", "error", "debug"], lambda x, y: None
                                 )
                             },
-                        ),
+                        )(),
                     }
                 )
 

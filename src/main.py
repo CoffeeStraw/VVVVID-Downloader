@@ -133,7 +133,10 @@ def dl_from_vvvvid(url, args):
             # Get m3u8 link and HTTP headers
             try:
                 ydl_opts = (
-                    {"verbose": True}
+                    {
+                        "verbose": True,
+                        "ignoreerrors": True,
+                    }
                     if args.verbose
                     else {
                         "quiet": True,
@@ -155,7 +158,9 @@ def dl_from_vvvvid(url, args):
                     infos = ydl.extract_info(ep_url, download=False)
 
                 if args.verbose:
-                    print(f"\n{infos}\n")
+                    print(
+                        f"\n{Style.BRIGHT + Fore.RED}YOUTUBEDL INFOS:{Style.RESET_ALL}\n{infos}\n"
+                    )
 
                 infos = infos["formats"][-1]
                 media_url = infos["url"]

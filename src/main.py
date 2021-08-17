@@ -174,6 +174,21 @@ def dl_from_vvvvid(url, args):
                 f"- {Style.BRIGHT}Episodio {episode['number']}: {Style.RESET_ALL + episode['title']} {Fore.GREEN}in download"
             )
 
+            # Get subtitles (if any)
+            subtitles = vvvvid.get_subtitle(requests_obj, season_id, show_id, episode["video_id"])
+
+            for sub_url in subtitles:
+                r = requests_obj["session"].get(
+                    sub_url,
+                    headers=requests_obj["headers"],
+                    params=requests_obj["payload"],
+                )
+                sub_filename = sub_url.split("/")[-1]
+                file_path = os.path.join(content_dir, sub_filename)
+                open(file_path, "wb").write(r.content)
+
+            quit()
+
             # Download the episode using ffmpeg
             error = ffmpeg_dl(
                 media_url,
@@ -187,7 +202,10 @@ def dl_from_vvvvid(url, args):
 
             # Remove ".part" from end of file
             file_path = os.path.join(content_dir, ep_name)
-            os.rename(file_path + ".part.mkv", file_path + ".mkv")
+            os.rename(f"{file_path}.part.mkv", f"{file_path}.mkv")
+
+
+
 
         # It is possible that no episode has been downloaded for the season.
         # In that case, delete the folder as well.

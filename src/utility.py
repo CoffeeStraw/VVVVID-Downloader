@@ -108,7 +108,7 @@ def ffmpeg_dl(media_url, http_headers, output_path, verbose=False):
 
     # Execute ffmpeg and visualize its outputs
     with subprocess.Popen(
-        cmd, stderr=subprocess.PIPE, bufsize=1, text=True, encoding="utf-8"
+        cmd, stderr=subprocess.PIPE, bufsize=1, encoding="utf-8"
     ) as p, ProgressBar() as pbar:
         for line in p.stderr:
             if verbose:
@@ -124,3 +124,4 @@ def ffmpeg_dl(media_url, http_headers, output_path, verbose=False):
     # without a time.sleep the script will go on and rename the file. Putting a small delay
     # stops the execution here in this particular case (in normal use-cases 1 millisecond is imperceptible)
     time.sleep(0.001)
+

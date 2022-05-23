@@ -3,6 +3,7 @@ VVVVID Downloader - Main
 Author: CoffeeStraw
 GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 """
+import re
 import os
 import sys
 import signal
@@ -71,7 +72,7 @@ def dl_from_vvvvid(url, args):
 
     # Retrieving datas about the given url
     show_id = vvvvid.parse_url(url)
-    seasons = vvvvid.get_seasons(requests_obj, url, show_id)
+    seasons = vvvvid.get_seasons(requests_obj, url, show_id, args)
     cont_title, cont_description = vvvvid.get_content_infos(requests_obj, show_id)
 
     # Printing content informations to the user
@@ -162,8 +163,8 @@ def dl_from_vvvvid(url, args):
                         f"\n{Style.BRIGHT + Fore.RED}YOUTUBEDL INFOS:{Style.RESET_ALL}\n{infos}\n"
                     )
 
-                infos = infos["formats"][-1]
-                media_url = infos["url"]
+                infos = infos["formats"][0]
+                media_url = re.search(r"(https.+$)", infos["url"]).group(0)
                 http_headers = "".join(
                     [f"{k}: {v}\n" for k, v in infos["http_headers"].items()]
                 )

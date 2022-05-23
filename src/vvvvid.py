@@ -6,8 +6,7 @@ GitHub: https://github.com/CoffeeStraw/VVVVID-Downloader
 import re
 import sys
 import requests
-from copy import deepcopy
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 
 def get_requests_obj():
@@ -70,7 +69,7 @@ def get_content_infos(requests_obj, show_id):
     return json_file["data"]["title"], json_file["data"]["description"]
 
 
-def get_seasons(requests_obj, url, show_id):
+def get_seasons(requests_obj, url, show_id, args):
     """
     Returns a dictionary containing seasons with url
     """
@@ -90,6 +89,9 @@ def get_seasons(requests_obj, url, show_id):
             f'{Fore.RED}[ERRORE]{Style.RESET_ALL} L\'URL fornito ("{url}") non è valido. Si prega di controllarlo e riprovare.'
         )
         sys.exit(-1)
+
+    if args.verbose:
+        print(json_file)
 
     # Extracting seasons from json
     seasons = {}

@@ -2,6 +2,9 @@
 
 ---
 
+## NOTA
+Questo progetto non é piú mantenuto, in quanto VVVVID é stato chiuso. Grazie a tutti per il supporto.
+
 ## 📚 Descrizione
 **VVVVID Downloader** è una comoda soluzione per scaricare dei contenuti dal noto sito **VVVVID**, tutto ciò di cui necessita è il **link** alla serie/film o ad un singolo episodio, al resto ci penserà lui.
  In particolare, sono distinguibili due casistiche per i link:

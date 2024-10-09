@@ -59,7 +59,7 @@ def get_content_infos(requests_obj, show_id):
     Retrieves some informations for the content to beautify output,
     specifically description and well formatted name
     """
-    infos_url = "https://www.vvvvid.it/vvvvid/ondemand/" + show_id + "/info/"
+    infos_url = f"https://www.vvvvid.it/vvvvid/ondemand/{show_id}/info/"
     json_file = (
         requests_obj["session"]
         .get(infos_url, headers=requests_obj["headers"], params=requests_obj["payload"])
@@ -77,7 +77,7 @@ def get_seasons(requests_obj, url, show_id, args):
     json_file = (
         requests_obj["session"]
         .get(
-            "https://www.vvvvid.it/vvvvid/ondemand/" + show_id + "/seasons/",
+            f"https://www.vvvvid.it/vvvvid/ondemand/{show_id}/seasons/",
             headers=requests_obj["headers"],
             params=requests_obj["payload"],
         )
@@ -128,3 +128,24 @@ def get_seasons(requests_obj, url, show_id, args):
             del seasons[season_id]
 
     return seasons
+
+
+def get_subtitle(requests_obj, season_id, show_id, video_id):
+    """
+    Returns the link to the subtitle file, if exists, of a given episode 
+    """
+    json_file = (
+        requests_obj["session"]
+        .get(
+            f"https://www.vvvvid.it/vvvvid/ondemand/{show_id}/season/{season_id}?video_id={video_id}",
+            headers=requests_obj["headers"],
+            params=requests_obj["payload"],
+        )
+        .json()
+    )
+
+    subtitles = json_file["data"][0]
+    if "subtitles" not in subtitles:
+        return None
+
+    return [s["url"] for s in subtitles["subtitles"]]
